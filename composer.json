@@ -1,31 +1,40 @@
 {
-    "name": "utkarshpg/laravel-crud-generator",
-    "description": "Generate CRUD-ready models and controllers with a single command",
+    "name": "utkarsh1244p/laravel-crud-generator",
+    "description": "Generate Laravel CRUD Model & Controller with a single command - php artisan ModelName",
     "type": "library",
+    "keywords": ["laravel", "crud", "generator", "model", "controller", "scaffolding"],
     "license": "MIT",
-    "require": {
-        "php": "^8.0",
-        "laravel/framework": "^11.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "UtkarshPG\\CrudGenerator\\": "src/"
-        }
+    "homepage": "https://github.com/Utkarsh1244p/laravel-crud-generator",
+    "support": {
+        "issues": "https://github.com/Utkarsh1244p/laravel-crud-generator/issues",
+        "source": "https://github.com/Utkarsh1244p/laravel-crud-generator"
     },
     "authors": [
         {
             "name": "Utkarsh Gayguwal",
-            "email": "utkarshgayguwal123@gmail.com",  
-            "role": "Developer"  
+            "email": "utkarshgayguwal123@gmail.com",
+            "homepage": "https://github.com/Utkarsh1244p",
+            "role": "Developer"
         }
     ],
+    "require": {
+        "php": "^8.0",
+        "laravel/framework": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Utkarsh1244p\\CrudGenerator\\": "src/"
+        }
+    },
     "extra": {
         "laravel": {
             "providers": [
-                "UtkarshPG\\CrudGenerator\\Providers\\CrudGeneratorServiceProvider"
+                "Utkarsh1244p\\CrudGenerator\\Providers\\CrudGeneratorServiceProvider"
             ]
         }
     },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    "minimum-stability": "stable",
+    "scripts": {
+        "test": "phpunit"
+    }
 }
