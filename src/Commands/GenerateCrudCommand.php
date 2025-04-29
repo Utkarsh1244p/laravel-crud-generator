@@ -1,6 +1,6 @@
 <?php
 
-namespace YourVendor\CrudGenerator\Commands;
+namespace Utkarsh1244p\CrudGenerator\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
