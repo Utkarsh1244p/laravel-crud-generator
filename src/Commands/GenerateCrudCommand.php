@@ -17,6 +17,9 @@ class GenerateCrudCommand extends Command
         $controllerName = "{$modelName}Controller";
         $routeName = Str::kebab(Str::plural($modelName));
 
+        // Ensure API routes file exists
+        $this->ensureApiRoutesFileExists();
+
         // Generate Model
         $modelPath = app_path("Models/{$modelName}.php");
         $this->createFromStub('model.stub', $modelPath, [
@@ -56,6 +59,26 @@ class GenerateCrudCommand extends Command
 
         $this->info("CRUD files for {$modelName} created successfully!");
         $this->info("API Resource route added for {$routeName}");
+    }
+
+    protected function ensureApiRoutesFileExists()
+    {
+        $apiRoutesPath = base_path('routes/api.php');
+        
+        if (!File::exists($apiRoutesPath)) {
+            $this->info('API routes file not found. Installing...');
+            
+            // Method 1: Use Sanctum's installer (if installed)
+            if (class_exists('Laravel\Sanctum\SanctumServiceProvider')) {
+                $process = new Process(['php', 'artisan', 'api:install']);
+                $process->run();
+            } 
+            // Method 2: Create basic API routes file
+            else {
+                File::put($apiRoutesPath, "<?php\n\nuse Illuminate\Support\Facades\Route;\n");
+                $this->info('Created basic routes/api.php file');
+            }
+        }
     }
 
     protected function addApiResourceRoute($controllerName, $routeName)
