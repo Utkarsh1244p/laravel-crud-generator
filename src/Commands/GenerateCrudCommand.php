@@ -80,21 +80,50 @@ class GenerateCrudCommand extends Command
         }
     }
 
-    protected function addApiResourceRoute($controllerName, $routeName)
+    protected function addApiResourceRoute($modelName)
     {
         $apiRoutesPath = base_path('routes/api.php');
-        $routeDefinition = "Route::apiResource('{$routeName}', \\App\\Http\\Controllers\\{$controllerName}Controller::class);";
+        $routeName = Str::kebab(Str::plural($modelName));
+        $controllerName = "{$modelName}Controller";
         
-        // Check if route already exists
-        if (Str::contains(file_get_contents($apiRoutesPath), $routeDefinition)) {
+        // 1. Add the use statement at top
+        $this->addUseStatement($apiRoutesPath, $controllerName);
+        
+        // 2. Add the simplified route
+        $routeDefinition = "Route::apiResource('{$routeName}', {$controllerName}::class);";
+        
+        if (Str::contains(File::get($apiRoutesPath), $routeDefinition)) {
             return;
         }
+        
+        File::append($apiRoutesPath, "\n{$routeDefinition}\n");
+    }
 
-        // Add route with newline before it
-        file_put_contents(
-            $apiRoutesPath,
-            "\n".$routeDefinition."\n",
-            FILE_APPEND
-        );
+    protected function addUseStatement($filePath, $controllerName)
+    {
+        $contents = File::get($filePath);
+        $useStatement = "use App\Http\Controllers\\{$controllerName};";
+        
+        // Don't add if already exists
+        if (Str::contains($contents, $useStatement)) {
+            return;
+        }
+        
+        // Insert after opening PHP tag or namespace
+        if (Str::contains($contents, 'namespace ')) {
+            $contents = preg_replace(
+                '/(namespace .+?;\n)/',
+                "$1\n{$useStatement}\n",
+                $contents
+            );
+        } else {
+            $contents = preg_replace(
+                '/<\?php\n/',
+                "<?php\n\n{$useStatement}\n",
+                $contents
+            );
+        }
+        
+        File::put($filePath, $contents);
     }
 }
