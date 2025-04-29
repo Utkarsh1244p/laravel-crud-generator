@@ -1,0 +1,31 @@
+{
+    "name": "utkarshpg/laravel-crud-generator",
+    "description": "Generate CRUD-ready models and controllers with a single command",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": "^8.0",
+        "laravel/framework": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "UtkarshPG\\CrudGenerator\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Utkarsh Gayguwal",
+            "email": "utkarshgayguwal123@gmail.com",  
+            "role": "Developer"  
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "UtkarshPG\\CrudGenerator\\Providers\\CrudGeneratorServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

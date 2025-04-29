@@ -1,0 +1,109 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\{{ model }};
+use Illuminate\Http\Request;
+
+class {{ model }}Controller extends Controller
+{
+    public function index()
+    {
+        try {
+            ${{ modelVariable }} = {{ model }}::latest()->paginate();
+            
+            return response()->json([
+                'data' => ${{ modelVariable }},
+                'status' => 200
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Server Error',
+                'status' => 500
+            ], 500);
+        }
+    }
+
+    public function store(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                // Add validation rules here
+            ]);
+
+            ${{ modelVariable }} = {{ model }}::create($validated);
+
+            return response()->json([
+                'data' => ${{ modelVariable }},
+                'status' => 201
+            ], 201);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Server Error',
+                'status' => 500
+            ], 500);
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+            ${{ modelVariable }} = {{ model }}::findOrFail($id);
+            
+            return response()->json([
+                'data' => ${{ modelVariable }},
+                'status' => 200
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Server Error',
+                'status' => 500
+            ], 500);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            ${{ modelVariable }} = {{ model }}::findOrFail($id);
+            $validated = $request->validate([
+                // Add validation rules here
+            ]);
+            
+            ${{ modelVariable }}->update($validated);
+
+            return response()->json([
+                'data' => ${{ modelVariable }},
+                'status' => 200
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Server Error',
+                'status' => 500
+            ], 500);
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            ${{ modelVariable }} = {{ model }}::findOrFail($id);
+            ${{ modelVariable }}->delete();
+
+            return response()->json([
+                'message' => 'Deleted successfully',
+                'status' => 200
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Server Error',
+                'status' => 500
+            ], 500);
+        }
+    }
+}
