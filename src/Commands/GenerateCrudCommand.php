@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class GenerateCrudCommand extends Command
 {
-    protected $signature = '{model}';
+    protected $signature = 'auto:generate {model}';
     protected $description = 'Generate CRUD Model and Controller';
 
     public function handle()
