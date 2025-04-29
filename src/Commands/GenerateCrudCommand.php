@@ -15,6 +15,7 @@ class GenerateCrudCommand extends Command
     {
         $modelName = $this->argument('model');
         $controllerName = "{$modelName}Controller";
+        $routeName = Str::kebab(Str::plural($modelName));
 
         // Generate Model
         $modelPath = app_path("Models/{$modelName}.php");
@@ -49,5 +50,29 @@ class GenerateCrudCommand extends Command
 
         File::ensureDirectoryExists(dirname($path));
         File::put($path, $content);
+
+        // Add route to api.php
+        $this->addApiResourceRoute($modelName, $routeName);
+
+        $this->info("CRUD files for {$modelName} created successfully!");
+        $this->info("API Resource route added for {$routeName}");
+    }
+
+    protected function addApiResourceRoute($controllerName, $routeName)
+    {
+        $apiRoutesPath = base_path('routes/api.php');
+        $routeDefinition = "Route::apiResource('{$routeName}', \\App\\Http\\Controllers\\{$controllerName}Controller::class);";
+        
+        // Check if route already exists
+        if (Str::contains(file_get_contents($apiRoutesPath), $routeDefinition)) {
+            return;
+        }
+
+        // Add route with newline before it
+        file_put_contents(
+            $apiRoutesPath,
+            "\n".$routeDefinition."\n",
+            FILE_APPEND
+        );
     }
 }
