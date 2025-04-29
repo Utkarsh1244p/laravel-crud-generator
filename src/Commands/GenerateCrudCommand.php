@@ -34,7 +34,11 @@ class GenerateCrudCommand extends Command
             '{{ modelVariable }}' => Str::camel($modelName),
         ]);
 
+        // Add route to api.php
+        $this->addApiResourceRoute($modelName, $routeName);
+
         $this->info("CRUD files for {$modelName} created successfully!");
+        $this->info("API Resource route added for {$routeName}");
     }
 
     protected function createFromStub($stubName, $path, $replacements)
@@ -54,11 +58,6 @@ class GenerateCrudCommand extends Command
         File::ensureDirectoryExists(dirname($path));
         File::put($path, $content);
 
-        // Add route to api.php
-        $this->addApiResourceRoute($modelName, $routeName);
-
-        $this->info("CRUD files for {$modelName} created successfully!");
-        $this->info("API Resource route added for {$routeName}");
     }
 
     protected function ensureApiRoutesFileExists()
