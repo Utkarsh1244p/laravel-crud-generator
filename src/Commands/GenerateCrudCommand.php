@@ -314,19 +314,11 @@ class GenerateCrudCommand extends Command
     protected function generateResponseTrait()
     {
         $traitPath = app_path('Traits/Response.php');
-        $stubPath = resource_path('stubs/response-trait.stub');
 
-        if (!file_exists($stubPath)) {
-            $this->error('Stub file not found at: ' . $stubPath);
-            return;
-        }
+        File::ensureDirectoryExists(dirname($traitPath));
 
-        if (!is_dir(dirname($traitPath))) {
-            mkdir(dirname($traitPath), 0755, true);
-        }
+        $stub = File::get(__DIR__ . '/../../resources/stubs/response-trait.stub');
 
-        file_put_contents($traitPath, file_get_contents($stubPath));
-
-        $this->info('Response trait created at: ' . $traitPath);
+        File::put($traitPath, $stub);
     }
 }
