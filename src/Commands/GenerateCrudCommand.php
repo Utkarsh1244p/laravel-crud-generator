@@ -253,6 +253,10 @@ class GenerateCrudCommand extends Command
             $parts = explode(':', $field);
             $name = trim($parts[0]);
             $fieldType = trim($parts[1] ?? 'string');
+            if ($fieldType === 'foreign') {
+                $foreignTable = trim($parts[2] ?? 'users');
+                $foreignColumn = trim($parts[3] ?? 'id');
+            }
             
             // Skip these fields
             if (in_array($name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
@@ -260,7 +264,7 @@ class GenerateCrudCommand extends Command
             }
 
             // Get rules based on field type
-            $fieldRules = $this->getValidationRules($fieldType, $type === 'Store');
+            $fieldRules = $this->getValidationRules($fieldType, $type === 'Store', $fieldType === 'foreign' ? [$foreignTable, $foreignColumn] : []);
             $rules[] = "'{$name}' => ['".implode("', '", $fieldRules)."'],";
             
             // Generate messages
@@ -281,9 +285,15 @@ class GenerateCrudCommand extends Command
         File::put($requestPath, $content);
     }
 
-    protected function getValidationRules($fieldType, $isRequired = true)
+    protected function getValidationRules($fieldType, $isRequired = true, $foreign = [])
     {
         $rules = $isRequired ? ['required'] : ['sometimes'];
+        
+        if ($fieldType === 'foreign' && $foreign) {
+            $foreignTable = $foreign[0];
+            $foreignColumn = $foreign[1];
+            return array_merge($rules, ['exists:'. $foreignTable .','. $foreignColumn]);
+        }
         
         return match($fieldType) {
             'integer', 'bigInteger' => array_merge($rules, ['integer']),
@@ -293,8 +303,7 @@ class GenerateCrudCommand extends Command
             'email' => array_merge($rules, ['email', 'max:255']),
             'text', 'longText' => array_merge($rules, ['string']),
             'json' => array_merge($rules, ['json']),
-            'foreign' => ['exists:'.($parts[2] ?? 'users').','.($parts[3] ?? 'id')],
-            default => array_merge($rules, ['string', 'max:255']) // string and others
+            default => array_merge($rules, ['string', 'max:255']) 
         };
     }
 
