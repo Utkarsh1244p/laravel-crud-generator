@@ -23,7 +23,7 @@ class GenerateCrudCommand extends Command
         $this->generateModel($modelName);
 
         // Generate Controller
-        $this->generateController($modelName);
+        $this->generateController($modelName, $fields ?: null);
 
         // Generate Migration if fields are provided
         if ($fields) {
@@ -54,16 +54,27 @@ class GenerateCrudCommand extends Command
         File::put($modelPath, $content);
     }
 
-    protected function generateController($modelName)
+    protected function generateController($modelName, $fields = null)
     {
         $controllerPath = app_path("Http/Controllers/{$modelName}Controller.php");
         $stub = File::get(__DIR__.'/../../resources/stubs/controller.stub');
+        
+        $replacements = [
+            '{{ model }}' => $modelName,
+            '{{ modelVariable }}' => Str::camel($modelName),
+        ];
+        
+        // Only parse fields if they exist
+        if ($fields) {
+            $replacements['{{ fields }}'] = $this->getFieldNames($fields);
+        }
+        
         $content = str_replace(
-            ['{{ model }}', '{{ modelVariable }}'],
-            [$modelName, Str::camel($modelName)],
+            array_keys($replacements),
+            array_values($replacements),
             $stub
         );
-        File::ensureDirectoryExists(dirname($controllerPath));
+        
         File::put($controllerPath, $content);
     }
 
@@ -320,5 +331,16 @@ class GenerateCrudCommand extends Command
         $stub = File::get(__DIR__ . '/../../resources/stubs/response-trait.stub');
 
         File::put($traitPath, $stub);
+    }
+
+    protected function getFieldNames($fields)
+    {
+        return array_map(function($field) {
+            $parts = explode(':', $field);
+            return [
+                'name' => trim($parts[0]),
+                'type' => trim($parts[1] ?? 'string')
+            ];
+        }, explode(',', $fields));
     }
 }
