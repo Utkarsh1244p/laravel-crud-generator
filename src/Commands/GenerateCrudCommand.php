@@ -16,6 +16,9 @@ class GenerateCrudCommand extends Command
         $modelName = $this->argument('model');
         $fields = $this->option('fields');
 
+        // Generate Response Trait
+        $this->generateResponseTrait();
+
         // Generate Model
         $this->generateModel($modelName);
 
@@ -280,7 +283,7 @@ class GenerateCrudCommand extends Command
         }
 
         $stubName = strtolower($type) . '-request.stub';
-$stub = File::get(__DIR__ . "/../../resources/stubs/{$stubName}");
+        $stub = File::get(__DIR__ . "/../../resources/stubs/{$stubName}");
         $content = str_replace(
             ['{{ model }}', '{{ rules }}', '{{ messages }}'],
             [$modelName, implode("\n            ", $rules), implode("\n            ", $messages)],
@@ -306,5 +309,24 @@ $stub = File::get(__DIR__ . "/../../resources/stubs/{$stubName}");
             'foreign' => ['exists:'.($parts[2] ?? 'users').','.($parts[3] ?? 'id')],
             default => array_merge($rules, ['string', 'max:255']) // string and others
         };
+    }
+
+    protected function generateResponseTrait()
+    {
+        $traitPath = app_path('Traits/Response.php');
+        $stubPath = resource_path('stubs/response-trait.stub');
+
+        if (!file_exists($stubPath)) {
+            $this->error('Stub file not found at: ' . $stubPath);
+            return;
+        }
+
+        if (!is_dir(dirname($traitPath))) {
+            mkdir(dirname($traitPath), 0755, true);
+        }
+
+        file_put_contents($traitPath, file_get_contents($stubPath));
+
+        $this->info('Response trait created at: ' . $traitPath);
     }
 }
