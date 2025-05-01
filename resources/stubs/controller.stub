@@ -27,13 +27,17 @@ class {{ model }}Controller extends Controller
     {
         try {
             if(isset($fields) && count($fields) > 0)
-            ${{ modelVariable }} = {{ model }}::create([
-                @foreach($fields as $field)
-                '{{ $field['name'] }}' => $request->{{ $field['name'] }},
-                @endforeach
-            ]);
+            {
+                $data = [];
+                foreach($fields as $field) {
+                    $data[$field['name']] = $request->input($field['name']);
+                }
+                ${{ modelVariable }} = {{ model }}::create($data);
+            }
             else
-            ${{ modelVariable }} = {{ model }}::create($request->validated());
+            {
+                ${{ modelVariable }} = {{ model }}::create($request->validated());
+            }
 
             return $this->successResponse(
                 ${{ modelVariable }}, 
@@ -70,13 +74,17 @@ class {{ model }}Controller extends Controller
             }
 
             if(isset($fields) && count($fields) > 0)
-            ${{ modelVariable }}->update([
-                @foreach($fields as $field)
-                '{{ $field['name'] }}' => $request->{{ $field['name'] }},
-                @endforeach
-            ]);
+            {
+                $data = [];
+                foreach($fields as $field) {
+                    $data[$field['name']] = $request->input($field['name']);
+                }
+                ${{ modelVariable }}->update($data);
+            }
             else
-            ${{ modelVariable }}->update($request->validated());
+            {
+                ${{ modelVariable }}->update($request->validated());
+            }
 
             return $this->successResponse(
                 ${{ modelVariable }},
