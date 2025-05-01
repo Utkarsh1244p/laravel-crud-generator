@@ -15,59 +15,59 @@ trait Response
     const INTERNAL_SERVER_ERROR = 500;
     const SERVICE_UNAVAILABLE = 503;
 
-    public function badRequestResponse(\$message = "Bad Request.", \$status = self::BAD_REQUEST)
+    public function badRequestResponse($message = "Bad Request.", $status = self::BAD_REQUEST)
     {
         return response()->json([
-            "message" => \$message,
-            "status" => \$status
-        ], \$status);
+            "message" => $message,
+            "status" => $status
+        ], $status);
     }
 
-    public function unauthorizedResponse(\$message = "Unauthorized.", \$status = self::UNAUTHORIZED)
+    public function unauthorizedResponse($message = "Unauthorized.", $status = self::UNAUTHORIZED)
     {
         return response()->json([
-            "message" => \$message,
-            "status" => \$status
-        ], \$status);
+            "message" => $message,
+            "status" => $status
+        ], $status);
     }
 
-    public function forbiddenResponse(\$message = "Forbidden.", \$status = self::FORBIDDEN)
+    public function forbiddenResponse($message = "Forbidden.", $status = self::FORBIDDEN)
     {
         return response()->json([
-            "message" => \$message,
-            "status" => \$status
-        ], \$status);
+            "message" => $message,
+            "status" => $status
+        ], $status);
     }
 
-    public function notFoundResponse(\$message = "Resource not found.", \$status = self::NOT_FOUND)
+    public function notFoundResponse($message = "Resource not found.", $status = self::NOT_FOUND)
     {
         return response()->json([
-            "message" => \$message,
-            "status" => \$status
-        ], \$status);
+            "message" => $message,
+            "status" => $status
+        ], $status);
     }
 
-    public function successResponse(\$data = null, \$message = "Resource fetched successfully.", \$status = self::SUCCESS)  
+    public function successResponse($data = null, $message = "Resource fetched successfully.", $status = self::SUCCESS)  
     {
-        if(\$status == self::CREATED){
+        if($status == self::CREATED){
             return response()->json([
-                "message" => \$message,
-                "status" => \$status,
-            ], \$status);
+                "message" => $message,
+                "status" => $status,
+            ], $status);
         } else {
             return response()->json([
-                "message" => \$message,
-                "status" => \$status,
-                "data" => \$data
-            ], \$status);
+                "message" => $message,
+                "status" => $status,
+                "data" => $data
+            ], $status);
         }
     }
 
-    public function errorResponse(\$message = "Server Error.", \$status = self::INTERNAL_SERVER_ERROR)
+    public function errorResponse($message = "Server Error.", $status = self::INTERNAL_SERVER_ERROR)
     {
         return response()->json([
-            "message" => \$message,
-            "status" => \$status
-        ], \$status);
+            "message" => $message,
+            "status" => $status
+        ], $status);
     }
 }
