@@ -24,6 +24,24 @@ Generate Laravel CRUD models, controllers, API routes, and migration files with 
 
 ---
 
+## Supported Field Types for Factory Generation
+
+When generating factories using the `--fields` option, the following field types are automatically mapped to Faker methods:
+
+| Field Type     | Faker Method Used           |
+|----------------|-----------------------------|
+| string         | $this->faker->word          |
+| text/longText  | $this->faker->text          |
+| integer/bigInt | $this->faker->randomNumber  |
+| float/decimal  | $this->faker->randomFloat(2)|
+| boolean        | $this->faker->boolean       |
+| date/dateTime  | $this->faker->dateTime      |
+| json           | json_encode([...])          |
+
+> 💡 For `json`, a sample JSON-encoded array is returned, e.g., `json_encode(['key' => 'value'])`.
+
+---
+
 ## 📦 Installation (Public Repository)
 
 Since the package is not yet published to Packagist, add the GitHub repo manually:
