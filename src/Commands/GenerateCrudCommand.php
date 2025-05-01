@@ -25,6 +25,7 @@ class GenerateCrudCommand extends Command
         // Generate Migration if fields are provided
         if ($fields) {
             $this->generateMigration($modelName, $fields);
+            $this->generateFactory($modelName, $fields);
         }
 
         // Add API Resource Route
@@ -162,5 +163,52 @@ class GenerateCrudCommand extends Command
         }
 
         File::put($apiRoutesPath, $contents);
+    }
+
+    protected function generateFactory($modelName, $fields)
+    {
+        $factoryPath = database_path("factories/{$modelName}Factory.php");
+        
+        $fieldDefinitions = explode(',', $fields);
+        $factoryFields = [];
+        
+        foreach ($fieldDefinitions as $field) {
+            $parts = explode(':', $field);
+            $name = trim($parts[0]);
+            $type = trim($parts[1] ?? 'string');
+            
+            // Skip foreign keys and id
+            if ($type === 'foreign' || $name === 'id') continue;
+            
+            // Generate fake data based on field type
+            $factoryFields[] = $this->getFactoryFieldDefinition($name, $type);
+        }
+        
+        // Add timestamps if needed
+        $factoryFields[] = "'created_at' => now(),";
+        $factoryFields[] = "'updated_at' => now(),";
+        
+        $stub = File::get(__DIR__.'/../../resources/stubs/factory.stub');
+        $content = str_replace(
+            ['{{ model }}', '{{ fields }}'],
+            [$modelName, implode("\n            ", $factoryFields)],
+            $stub
+        );
+        
+        File::ensureDirectoryExists(dirname($factoryPath));
+        File::put($factoryPath, $content);
+    }
+
+    protected function getFactoryFieldDefinition($name, $type)
+    {
+        return match($type) {
+            'integer', 'bigInteger', 'foreignId' => "'{$name}' => \$this->faker->randomNumber(),",
+            'float', 'double', 'decimal' => "'{$name}' => \$this->faker->randomFloat(2),",
+            'boolean' => "'{$name}' => \$this->faker->boolean,",
+            'date', 'dateTime' => "'{$name}' => \$this->faker->dateTime,",
+            'text', 'longText' => "'{$name}' => \$this->faker->text,",
+            'json' => "'{$name}' => json_encode(['key' => 'value']),",
+            default => "'{$name}' => \$this->faker->word," // string and others
+        };
     }
 }
