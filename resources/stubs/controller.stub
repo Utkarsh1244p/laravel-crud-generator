@@ -105,7 +105,7 @@ class {{ model }}Controller extends Controller
             }
 
             ${{ modelVariable }}->delete();
-            return $this->successResponse('{{ model }} deleted successfully', self::NO_CONTENT);
+            return $this->successResponse(message:'{{ model }} deleted successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
