@@ -8,76 +8,136 @@ use Illuminate\Support\Str;
 
 class GenerateCrudCommand extends Command
 {
-    protected $signature = 'auto:generate {model}';
-    protected $description = 'Generate CRUD Model and Controller';
+    protected $signature = 'auto:generate {model} {--fields=}';
+    protected $description = 'Generate CRUD Model, Controller, Migration and Routes';
 
     public function handle()
     {
         $modelName = $this->argument('model');
-        $controllerName = "{$modelName}Controller";
-        $routeName = Str::kebab(Str::plural($modelName));
-
-        // Ensure API routes file exists
-        $this->ensureApiRoutesFileExists();
+        $fields = $this->option('fields');
 
         // Generate Model
-        $modelPath = app_path("Models/{$modelName}.php");
-        $this->createFromStub('model.stub', $modelPath, [
-            '{{ class }}' => $modelName,
-            '{{ table }}' => Str::snake(Str::pluralStudly($modelName)),
-        ]);
+        $this->generateModel($modelName);
 
         // Generate Controller
-        $controllerPath = app_path("Http/Controllers/{$controllerName}.php");
-        $this->createFromStub('controller.stub', $controllerPath, [
-            '{{ model }}' => $modelName,
-            '{{ modelVariable }}' => Str::camel($modelName),
-        ]);
+        $this->generateController($modelName);
 
-        // Add route to api.php
-        $this->addApiResourceRoute($modelName, $routeName);
-
-        $this->info("CRUD files for {$modelName} created successfully!");
-        $this->info("API Resource route added for {$routeName}");
-    }
-
-    protected function createFromStub($stubName, $path, $replacements)
-    {
-        if (File::exists($path)) {
-            $this->error("File already exists: {$path}");
-            return;
+        // Generate Migration if fields are provided
+        if ($fields) {
+            $this->generateMigration($modelName, $fields);
         }
 
-        $stub = File::get(__DIR__."/../../resources/stubs/{$stubName}");
+        // Add API Resource Route
+        $this->addApiResourceRoute($modelName);
+
+        $this->info("CRUD files for {$modelName} created successfully!");
+        if ($fields) {
+            $this->info("Migration file created with fields: {$fields}");
+        }
+    }
+
+    protected function generateModel($modelName)
+    {
+        $modelPath = app_path("Models/{$modelName}.php");
+        $stub = File::get(__DIR__.'/../../resources/stubs/model.stub');
         $content = str_replace(
-            array_keys($replacements),
-            array_values($replacements),
+            ['{{ class }}', '{{ table }}'],
+            [$modelName, Str::snake(Str::plural($modelName))],
+            $stub
+        );
+        File::ensureDirectoryExists(dirname($modelPath));
+        File::put($modelPath, $content);
+    }
+
+    protected function generateController($modelName)
+    {
+        $controllerPath = app_path("Http/Controllers/{$modelName}Controller.php");
+        $stub = File::get(__DIR__.'/../../resources/stubs/controller.stub');
+        $content = str_replace(
+            ['{{ model }}', '{{ modelVariable }}'],
+            [$modelName, Str::camel($modelName)],
+            $stub
+        );
+        File::ensureDirectoryExists(dirname($controllerPath));
+        File::put($controllerPath, $content);
+    }
+
+    protected function generateMigration($modelName, $fields)
+    {
+        $tableName = Str::snake(Str::plural($modelName));
+        $migrationName = "create_{$tableName}_table";
+        $timestamp = date('Y_m_d_His');
+
+        $migrationPath = database_path("migrations/{$timestamp}_{$migrationName}.php");
+
+        $stub = File::get(__DIR__.'/../../resources/stubs/migration.stub');
+        $schemaContent = $this->buildSchemaContent($fields);
+        
+        $content = str_replace(
+            ['{{ table }}', '{{ schema }}'],
+            [$tableName, $schemaContent],
             $stub
         );
 
-        File::ensureDirectoryExists(dirname($path));
-        File::put($path, $content);
-
+        File::put($migrationPath, $content);
     }
 
-    protected function ensureApiRoutesFileExists()
+    protected function buildSchemaContent($fields)
     {
-        $apiRoutesPath = base_path('routes/api.php');
-        
-        if (!File::exists($apiRoutesPath)) {
-            $this->info('API routes file not found. Installing...');
+        $fieldDefinitions = explode(',', $fields);
+        $schemaLines = ["\$table->id();"];
+
+        foreach ($fieldDefinitions as $field) {
+            $parts = explode(':', $field);
+            $name = trim($parts[0]);
+            $type = trim($parts[1] ?? 'string');
             
-            // Method 1: Use Sanctum's installer (if installed)
-            if (class_exists('Laravel\Sanctum\SanctumServiceProvider')) {
-                $process = new Process(['php', 'artisan', 'api:install']);
-                $process->run();
-            } 
-            // Method 2: Create basic API routes file
-            else {
-                File::put($apiRoutesPath, "<?php\n\nuse Illuminate\Support\Facades\Route;\n");
-                $this->info('Created basic routes/api.php file');
+            // Parse modifiers (nullable, default, unique, index)
+            $modifiers = array_slice($parts, 2);
+            $columnDefinition = "\$table->{$type}('{$name}')";
+
+            foreach ($modifiers as $modifier) {
+                $modifier = trim($modifier);
+                
+                // Handle nullable/required
+                if ($modifier === 'nullable') {
+                    $columnDefinition .= "->nullable()";
+                } elseif ($modifier === 'required') {
+                    // No modifier needed (default behavior)
+                }
+                // Handle default values with default(value) syntax
+                elseif (preg_match('/^default\((.*)\)$/', $modifier, $matches)) {
+                    $defaultValue = $matches[1];
+                    $columnDefinition .= "->default('{$defaultValue}')";
+                }
+                // Handle unique/index
+                elseif ($modifier === 'unique') {
+                    $columnDefinition .= "->unique()";
+                } elseif ($modifier === 'index') {
+                    $columnDefinition .= "->index()";
+                }
+                // Handle foreign keys
+                elseif ($modifier === 'foreign') {
+                    $foreignTable = trim($parts[3] ?? 'users');
+                    $foreignColumn = trim($parts[4] ?? 'id');
+                    $columnDefinition = "\$table->foreignId('{$name}')->constrained('{$foreignTable}', '{$foreignColumn}')";
+                    
+                    // Handle onDelete if specified
+                    if (in_array('cascade', $modifiers)) {
+                        $columnDefinition .= "->onDelete('cascade')";
+                    } elseif (in_array('setNull', $modifiers)) {
+                        $columnDefinition .= "->onDelete('set null')";
+                    }
+                }
             }
+
+            $schemaLines[] = $columnDefinition . ";";
         }
+
+        $schemaLines[] = "\$table->timestamps();";
+        $schemaLines[] = "\$table->softDeletes();";
+
+        return implode("\n            ", $schemaLines);
     }
 
     protected function addApiResourceRoute($modelName)
@@ -85,45 +145,22 @@ class GenerateCrudCommand extends Command
         $apiRoutesPath = base_path('routes/api.php');
         $routeName = Str::kebab(Str::plural($modelName));
         $controllerName = "{$modelName}Controller";
-        
-        // 1. Add the use statement at top
-        $this->addUseStatement($apiRoutesPath, $controllerName);
-        
-        // 2. Add the simplified route
-        $routeDefinition = "Route::apiResource('{$routeName}', {$controllerName}::class);";
-        
-        if (Str::contains(File::get($apiRoutesPath), $routeDefinition)) {
-            return;
-        }
-        
-        File::append($apiRoutesPath, "\n{$routeDefinition}\n");
-    }
 
-    protected function addUseStatement($filePath, $controllerName)
-    {
-        $contents = File::get($filePath);
         $useStatement = "use App\Http\Controllers\\{$controllerName};";
-        
-        // Don't add if already exists
-        if (Str::contains($contents, $useStatement)) {
-            return;
+        $routeDefinition = "Route::apiResource('{$routeName}', {$controllerName}::class);";
+
+        $contents = File::get($apiRoutesPath);
+
+        // Add use statement if not exists
+        if (!Str::contains($contents, $useStatement)) {
+            $contents = preg_replace('/<\?php\n/', "<?php\n\n{$useStatement}\n", $contents);
         }
-        
-        // Insert after opening PHP tag or namespace
-        if (Str::contains($contents, 'namespace ')) {
-            $contents = preg_replace(
-                '/(namespace .+?;\n)/',
-                "$1\n{$useStatement}\n",
-                $contents
-            );
-        } else {
-            $contents = preg_replace(
-                '/<\?php\n/',
-                "<?php\n\n{$useStatement}\n",
-                $contents
-            );
+
+        // Add route if not exists
+        if (!Str::contains($contents, $routeDefinition)) {
+            $contents .= "\n{$routeDefinition}\n";
         }
-        
-        File::put($filePath, $contents);
+
+        File::put($apiRoutesPath, $contents);
     }
 }
