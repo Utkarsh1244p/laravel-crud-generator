@@ -189,14 +189,23 @@ class GenerateCrudCommand extends Command
             $name = trim($parts[0]);
             $type = trim($parts[1] ?? 'string');
             
-            // Skip foreign keys and id
-            if ($type === 'foreign' || $name === 'id') continue;
-            
+            // Skip id and timestamps (handled later)
+            if (in_array($name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
+                continue;
+            }
+
+            // Handle foreign keys differently
+            if ($type === 'foreign') {
+                $foreignTable = trim($parts[2] ?? 'users');
+                $factoryFields[] = "'{$name}' => \\App\\Models\\".Str::studly(Str::singular($foreignTable))."::factory(),";
+                continue;
+            }
+
             // Generate fake data based on field type
             $factoryFields[] = $this->getFactoryFieldDefinition($name, $type);
         }
         
-        // Add timestamps if needed
+        // Add timestamps
         $factoryFields[] = "'created_at' => now(),";
         $factoryFields[] = "'updated_at' => now(),";
         
@@ -214,8 +223,8 @@ class GenerateCrudCommand extends Command
     protected function getFactoryFieldDefinition($name, $type)
     {
         return match($type) {
-            'integer', 'bigInteger', 'foreignId' => "'{$name}' => \$this->faker->randomNumber(),",
-            'float', 'double', 'decimal' => "'{$name}' => \$this->faker->randomFloat(2),",
+            'integer', 'bigInteger' => "'{$name}' => \$this->faker->randomNumber(),",
+            'float', 'double', 'decimal' => "'{$name}' => \$this->faker->randomFloat(2, 0, 1000),", 
             'boolean' => "'{$name}' => \$this->faker->boolean,",
             'date', 'dateTime' => "'{$name}' => \$this->faker->dateTime,",
             'text', 'longText' => "'{$name}' => \$this->faker->text,",
@@ -223,7 +232,6 @@ class GenerateCrudCommand extends Command
             default => "'{$name}' => \$this->faker->word," // string and others
         };
     }
-
     protected function generateRequestFiles($modelName, $fields)
     {
         $fieldDefinitions = explode(',', $fields);
