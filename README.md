@@ -1,10 +1,12 @@
 # Laravel CRUD Generator
+
 <!--
 [![Latest Version](https://img.shields.io/github/v/release/Utkarsh1244p/laravel-crud-generator?style=flat-square)](https://packagist.org/packages/utkarsh1244p/laravel-crud-generator)
 [![License](https://img.shields.io/github/license/Utkarsh1244p/laravel-crud-generator?style=flat-square)](LICENSE.md)
 [![Total Downloads](https://img.shields.io/packagist/dt/utkarsh1244p/laravel-crud-generator?style=flat-square)](https://packagist.org/packages/utkarsh1244p/laravel-crud-generator)
 -->
-Generate Laravel CRUD models, controllers, API routes, and migration files with a single Artisan command.
+
+Generate Laravel CRUD models, controllers, API routes, migrations, factories, and request files with a single Artisan command.
 
 ---
 
@@ -16,6 +18,8 @@ Generate Laravel CRUD models, controllers, API routes, and migration files with 
   - Controller (with ready-to-use CRUD methods)
   - API Route (added to `routes/api.php`)
   - Migration file with optional custom fields
+  - Factory file with Faker integration
+  - Request files (store/update) with validation rules and messages
 - ✅ Controller methods include:
   - JSON API responses with status codes
   - `try-catch` error handling
@@ -24,9 +28,16 @@ Generate Laravel CRUD models, controllers, API routes, and migration files with 
 
 ---
 
-## Supported Field Types for Factory Generation
+## 🏭 Factory Generation
 
-When generating factories using the `--fields` option, the following field types are automatically mapped to Faker methods:
+### Key Features:
+
+- **Automatic Type Detection** – Maps field types to appropriate Faker methods
+- **Foreign Key Handling** – Skips `*_id` fields to avoid relationship issues
+- **Default Timestamps** – Adds `created_at` and `updated_at` automatically
+- **Customizable** – Easily extend support for more data types if needed
+
+### Supported Field Types
 
 | Field Type     | Faker Method Used           |
 |----------------|-----------------------------|
@@ -39,6 +50,34 @@ When generating factories using the `--fields` option, the following field types
 | json           | json_encode([...])          |
 
 > 💡 For `json`, a sample JSON-encoded array is returned, e.g., `json_encode(['key' => 'value'])`.
+
+---
+
+## 🧾 Request File Generation
+
+### Key Features:
+
+- **Smart Rule Generation**
+  - `required` rules for Store requests
+  - `sometimes` rules for Update requests
+  - Auto-detects rules based on field type
+- **Foreign Key Handling**
+  - Adds `exists:table,column` rule for foreign keys
+- **Customizable Messages**
+  - Basic default error messages generated
+  - Easy to extend for localization or overrides
+
+### Field Type Mapping
+
+| Field Type     | Validation Rules             |
+|----------------|------------------------------|
+| string         | string, max:255              |
+| text           | string                       |
+| integer        | integer                      |
+| decimal/float  | numeric                      |
+| boolean        | boolean                      |
+| date           | date                         |
+| foreign        | exists:related_table,id      |
 
 ---
 
