@@ -24,11 +24,10 @@ Generate Laravel CRUD models, controllers, API routes, and migration files with 
 
 ---
 
-## 📦 Installation
+## 📦 Installation (Public Repository)
 
-### 1. Add the repository manually
-
-#### 🔓 For public GitHub repository:
+Since the package is not yet published to Packagist, add the GitHub repo manually:
 
 ```bash
 composer config repositories.crud-generator vcs https://github.com/Utkarsh1244p/laravel-crud-generator
+composer require utkarsh1244p/laravel-crud-generator:dev-main --prefer-source
