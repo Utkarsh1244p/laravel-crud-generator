@@ -26,6 +26,7 @@ class GenerateCrudCommand extends Command
         if ($fields) {
             $this->generateMigration($modelName, $fields);
             $this->generateFactory($modelName, $fields);
+            $this->generateRequestFiles($modelName, $fields);
         }
 
         // Add API Resource Route
@@ -209,6 +210,81 @@ class GenerateCrudCommand extends Command
             'text', 'longText' => "'{$name}' => \$this->faker->text,",
             'json' => "'{$name}' => json_encode(['key' => 'value']),",
             default => "'{$name}' => \$this->faker->word," // string and others
+        };
+    }
+
+    protected function generateRequestFiles($modelName, $fields)
+    {
+        $fieldDefinitions = explode(',', $fields);
+        
+        // Generate Store Request
+        $this->generateRequestFile(
+            $modelName, 
+            'Store', 
+            $fieldDefinitions,
+            ['required', 'string', 'max:255'] // Default rules for store
+        );
+        
+        // Generate Update Request
+        $this->generateRequestFile(
+            $modelName, 
+            'Update', 
+            $fieldDefinitions,
+            ['sometimes', 'string', 'max:255'] // Default rules for update
+        );
+    }
+
+    protected function generateRequestFile($modelName, $type, $fields, $defaultRules)
+    {
+        $requestPath = app_path("Http/Requests/{$type}{$modelName}Request.php");
+        $rules = [];
+        $messages = [];
+
+        foreach ($fields as $field) {
+            $parts = explode(':', $field);
+            $name = trim($parts[0]);
+            $fieldType = trim($parts[1] ?? 'string');
+            
+            // Skip these fields
+            if (in_array($name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
+                continue;
+            }
+
+            // Get rules based on field type
+            $fieldRules = $this->getValidationRules($fieldType, $type === 'Store');
+            $rules[] = "'{$name}' => ['".implode("', '", $fieldRules)."'],";
+            
+            // Generate messages
+            foreach ($fieldRules as $rule) {
+                $messages[] = "'{$name}.{$rule}' => 'The {$name} field must be valid.',";
+            }
+        }
+
+        $stub = File::get(__DIR__."/../../resources/stubs/{$strtolower($type)}-request.stub");
+        $content = str_replace(
+            ['{{ model }}', '{{ rules }}', '{{ messages }}'],
+            [$modelName, implode("\n            ", $rules), implode("\n            ", $messages)],
+            $stub
+        );
+
+        File::ensureDirectoryExists(dirname($requestPath));
+        File::put($requestPath, $content);
+    }
+
+    protected function getValidationRules($fieldType, $isRequired = true)
+    {
+        $rules = $isRequired ? ['required'] : ['sometimes'];
+        
+        return match($fieldType) {
+            'integer', 'bigInteger' => array_merge($rules, ['integer']),
+            'float', 'double', 'decimal' => array_merge($rules, ['numeric']),
+            'boolean' => array_merge($rules, ['boolean']),
+            'date', 'dateTime' => array_merge($rules, ['date']),
+            'email' => array_merge($rules, ['email', 'max:255']),
+            'text', 'longText' => array_merge($rules, ['string']),
+            'json' => array_merge($rules, ['json']),
+            'foreign' => ['exists:'.($parts[2] ?? 'users').','.($parts[3] ?? 'id')],
+            default => array_merge($rules, ['string', 'max:255']) // string and others
         };
     }
 }
