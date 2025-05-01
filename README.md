@@ -1,19 +1,34 @@
 # Laravel CRUD Generator
-
+<!--
 [![Latest Version](https://img.shields.io/github/v/release/Utkarsh1244p/laravel-crud-generator?style=flat-square)](https://packagist.org/packages/utkarsh1244p/laravel-crud-generator)
 [![License](https://img.shields.io/github/license/Utkarsh1244p/laravel-crud-generator?style=flat-square)](LICENSE.md)
 [![Total Downloads](https://img.shields.io/packagist/dt/utkarsh1244p/laravel-crud-generator?style=flat-square)](https://packagist.org/packages/utkarsh1244p/laravel-crud-generator)
+-->
+Generate Laravel CRUD models, controllers, API routes, and migration files with a single Artisan command.
 
-Generate Laravel CRUD Models & Controllers with a single Artisan command.
+---
 
-## Features
+## ✨ Features
 
-- 🚀 Single-command CRUD generation (`php artisan Post`)
-- 📦 Creates:
+- 🚀 Single-command CRUD generation
+- 📦 Automatically creates:
   - Model (with `HasFactory`, `SoftDeletes`, guarded `id`)
   - Controller (with ready-to-use CRUD methods)
-- ✅ Pre-built methods with:
-  - Proper error handling (try-catch blocks)
-  - JSON responses with status codes
+  - API Route (added to `routes/api.php`)
+  - Migration file with optional custom fields
+- ✅ Controller methods include:
+  - JSON API responses with status codes
+  - `try-catch` error handling
   - Pagination support
-- 🔧 Completely configurable
+- 🔧 Configurable field types via command-line
+
+---
+
+## 📦 Installation
+
+### 1. Add the repository manually
+
+#### 🔓 For public GitHub repository:
+
+```bash
+composer config repositories.crud-generator vcs https://github.com/Utkarsh1244p/laravel-crud-generator
