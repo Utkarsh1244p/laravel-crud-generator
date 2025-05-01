@@ -90,46 +90,58 @@ class GenerateCrudCommand extends Command
         $schemaLines = ["\$table->id();"];
 
         foreach ($fieldDefinitions as $field) {
-            $parts = explode(':', $field);
-            $name = trim($parts[0]);
-            $type = trim($parts[1] ?? 'string');
+            $parts = array_map('trim', explode(':', $field));
+            $name = $parts[0];
+            $type = $parts[1] ?? 'string';
             
-            // Parse modifiers (nullable, default, unique, index)
+            // Skip explicit 'id' field
+            if ($name === 'id') {
+                continue;
+            }
+
             $modifiers = array_slice($parts, 2);
+            
+            // Handle foreign keys separately
+            if ($type === 'foreign') {
+                $foreignTable = $parts[2] ?? 'users';
+                $foreignColumn = $parts[3] ?? 'id';
+                
+                $schemaLines[] = "\$table->unsignedBigInteger('{$name}');";
+                
+                $fkConstraint = "\$table->foreign('{$name}')"
+                            . "->references('{$foreignColumn}')"
+                            . "->on('{$foreignTable}')";
+                
+                if (in_array('cascade', $modifiers)) {
+                    $fkConstraint .= "->onDelete('cascade')";
+                } elseif (in_array('setNull', $modifiers)) {
+                    $fkConstraint .= "->onDelete('set null')";
+                }
+                
+                $schemaLines[] = $fkConstraint . ";";
+                continue;
+            }
+
+            // Regular field definition
             $columnDefinition = "\$table->{$type}('{$name}')";
 
             foreach ($modifiers as $modifier) {
-                $modifier = trim($modifier);
-                
-                // Handle nullable/required
-                if ($modifier === 'nullable') {
-                    $columnDefinition .= "->nullable()";
-                } elseif ($modifier === 'required') {
-                    // No modifier needed (default behavior)
-                }
-                // Handle default values with default(value) syntax
-                elseif (preg_match('/^default\((.*)\)$/', $modifier, $matches)) {
-                    $defaultValue = $matches[1];
-                    $columnDefinition .= "->default('{$defaultValue}')";
-                }
-                // Handle unique/index
-                elseif ($modifier === 'unique') {
-                    $columnDefinition .= "->unique()";
-                } elseif ($modifier === 'index') {
-                    $columnDefinition .= "->index()";
-                }
-                // Handle foreign keys
-                elseif ($modifier === 'foreign') {
-                    $foreignTable = trim($parts[3] ?? 'users');
-                    $foreignColumn = trim($parts[4] ?? 'id');
-                    $columnDefinition = "\$table->foreignId('{$name}')->constrained('{$foreignTable}', '{$foreignColumn}')";
-                    
-                    // Handle onDelete if specified
-                    if (in_array('cascade', $modifiers)) {
-                        $columnDefinition .= "->onDelete('cascade')";
-                    } elseif (in_array('setNull', $modifiers)) {
-                        $columnDefinition .= "->onDelete('set null')";
-                    }
+                switch (true) {
+                    case $modifier === 'nullable':
+                        $columnDefinition .= "->nullable()";
+                        break;
+                        
+                    case preg_match('/^default\((.*)\)$/', $modifier, $matches):
+                        $columnDefinition .= "->default('{$matches[1]}')";
+                        break;
+                        
+                    case $modifier === 'unique':
+                        $columnDefinition .= "->unique()";
+                        break;
+                        
+                    case $modifier === 'index':
+                        $columnDefinition .= "->index()";
+                        break;
                 }
             }
 
@@ -141,7 +153,6 @@ class GenerateCrudCommand extends Command
 
         return implode("\n            ", $schemaLines);
     }
-
     protected function addApiResourceRoute($modelName)
     {
         $apiRoutesPath = base_path('routes/api.php');
@@ -260,7 +271,8 @@ class GenerateCrudCommand extends Command
             }
         }
 
-        $stub = File::get(__DIR__."/../../resources/stubs/{$strtolower($type)}-request.stub");
+        $stubName = strtolower($type) . '-request.stub';
+$stub = File::get(__DIR__ . "/../../resources/stubs/{$stubName}");
         $content = str_replace(
             ['{{ model }}', '{{ rules }}', '{{ messages }}'],
             [$modelName, implode("\n            ", $rules), implode("\n            ", $messages)],
