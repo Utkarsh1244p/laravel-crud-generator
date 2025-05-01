@@ -26,15 +26,14 @@ class {{ model }}Controller extends Controller
     public function store(Store{{ model }}Request $request)
     {
         try {
-            @if(isset($fields) && count($fields) > 0)
+            if(isset($fields) && count($fields) > 0)
             ${{ modelVariable }} = {{ model }}::create([
                 @foreach($fields as $field)
                 '{{ $field['name'] }}' => $request->{{ $field['name'] }},
                 @endforeach
             ]);
-            @else
+            else
             ${{ modelVariable }} = {{ model }}::create($request->validated());
-            @endif
 
             return $this->successResponse(
                 ${{ modelVariable }}, 
@@ -70,15 +69,14 @@ class {{ model }}Controller extends Controller
                 return $this->notFoundResponse();
             }
 
-            @if(isset($fields) && count($fields) > 0)
+            if(isset($fields) && count($fields) > 0)
             ${{ modelVariable }}->update([
                 @foreach($fields as $field)
                 '{{ $field['name'] }}' => $request->{{ $field['name'] }},
                 @endforeach
             ]);
-            @else
+            else
             ${{ modelVariable }}->update($request->validated());
-            @endif
 
             return $this->successResponse(
                 ${{ modelVariable }},
