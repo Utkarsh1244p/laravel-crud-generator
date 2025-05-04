@@ -1,12 +1,12 @@
 <?php
 
-namespace UtkarshGayguwal\CrudGenerator\Commands;
+namespace UtkarshGayguwal\SmartScaffold\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
-class GenerateCrudCommand extends Command
+class SmartScaffoldCommand extends Command
 {
     protected $signature = 'make:crud {model} {--fields=}';
     protected $description = 'Generate CRUD Model, Controller, Migration and Routes';

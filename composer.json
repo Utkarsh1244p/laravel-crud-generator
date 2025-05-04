@@ -1,13 +1,13 @@
 {
-    "name": "utkarshgayguwal/laravel-crud-generator",
+    "name": "utkarshgayguwal/laravel-smart-scaffold",
     "description": "Generate Laravel CRUD Model & Controller with a single command - php artisan make:crud ModelName",
     "type": "library",
     "keywords": ["laravel", "crud", "generator", "model", "controller", "scaffolding"],
     "license": "MIT",
-    "homepage": "https://github.com/utkarshgayguwal/laravel-crud-generator",
+    "homepage": "https://github.com/utkarshgayguwal/laravel-smart-scaffold",
     "support": {
-        "issues": "https://github.com/utkarshgayguwal/laravel-crud-generator/issues",
-        "source": "https://github.com/utkarshgayguwal/laravel-crud-generator"
+        "issues": "https://github.com/utkarshgayguwal/laravel-smart-scaffold/issues",
+        "source": "https://github.com/utkarshgayguwal/laravel-smart-scaffold"
     },
     "authors": [
         {
@@ -23,13 +23,13 @@
     },
     "autoload": {
         "psr-4": {
-            "UtkarshGayguwal\\CrudGenerator\\": "src/"
+            "UtkarshGayguwal\\SmartScaffold\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "UtkarshGayguwal\\CrudGenerator\\Providers\\CrudGeneratorServiceProvider"
+                "UtkarshGayguwal\\SmartScaffold\\Providers\\SmartScaffoldServiceProvider"
             ]
         }
     },

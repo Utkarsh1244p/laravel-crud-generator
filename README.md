@@ -1,9 +1,9 @@
 # Laravel CRUD Generator
 
 <!--
-[![Latest Version](https://img.shields.io/github/v/release/utkarshgayguwal/laravel-crud-generator?style=flat-square)](https://packagist.org/packages/utkarshgayguwal/laravel-crud-generator)
-[![License](https://img.shields.io/github/license/utkarshgayguwal/laravel-crud-generator?style=flat-square)](LICENSE.md)
-[![Total Downloads](https://img.shields.io/packagist/dt/utkarshgayguwal/laravel-crud-generator?style=flat-square)](https://packagist.org/packages/utkarshgayguwal/laravel-crud-generator)
+[![Latest Version](https://img.shields.io/github/v/release/utkarshgayguwal/laravel-smart-scaffold?style=flat-square)](https://packagist.org/packages/utkarshgayguwal/laravel-smart-scaffold)
+[![License](https://img.shields.io/github/license/utkarshgayguwal/laravel-smart-scaffold?style=flat-square)](LICENSE.md)
+[![Total Downloads](https://img.shields.io/packagist/dt/utkarshgayguwal/laravel-smart-scaffold?style=flat-square)](https://packagist.org/packages/utkarshgayguwal/laravel-smart-scaffold)
 -->
 
 Generate Laravel CRUD models, controllers, API routes, migrations, factories, and request files with a single Artisan command.
@@ -48,7 +48,7 @@ Generate Laravel CRUD models, controllers, API routes, migrations, factories, an
 1.  Require package via Composer:
 
 ```bash
-composer require utkarshgayguwal/laravel-crud-generator
+composer require utkarshgayguwal/laravel-smart-scaffold
 ```
 * * *
 
@@ -207,5 +207,5 @@ protected function successResponse($data, $code = 200)
 Since the package is not yet published to Packagist, add the GitHub repo manually:
 
 ```bash
-composer config repositories.crud-generator vcs https://github.com/utkarshgayguwal/laravel-crud-generator
-composer require utkarshgayguwal/laravel-crud-generator:dev-main --prefer-source
+composer config repositories.crud-generator vcs https://github.com/utkarshgayguwal/laravel-smart-scaffold
+composer require utkarshgayguwal/laravel-smart-scaffold:dev-main --prefer-source
