@@ -7,6 +7,8 @@ use App\Traits\Response;
 use Illuminate\Http\Request;
 use App\Http\Requests\Store{{ model }}Request;
 use App\Http\Requests\Update{{ model }}Request;
+use App\Http\Resources\{{ model }}Resource;
+use App\Http\Resources\{{ model }}Collection;
 
 class {{ model }}Controller extends Controller
 {
@@ -16,8 +18,8 @@ class {{ model }}Controller extends Controller
     {
         try {
             $limit = $request->input('limit', 10);
-            ${{ modelVariable }} = {{ model }}::latest()->paginate($limit);
-            return $this->successResponse(${{ modelVariable }});
+            ${{ modelVariable }} = {{ model }}::orderBy('updated_at', 'desc')->paginate($limit);
+            return $this->successResponse(data: new {{ model }}Collection(${{ modelVariable }}));
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
@@ -58,7 +60,7 @@ class {{ model }}Controller extends Controller
                 return $this->notFoundResponse();
             }
 
-            return $this->successResponse(${{ modelVariable }});
+            return $this->successResponse(data: new {{ model }}Resource(${{ modelVariable }}));
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }

@@ -30,6 +30,7 @@ class SmartScaffoldCommand extends Command
             $this->generateMigration($modelName, $fields);
             $this->generateFactory($modelName, $fields);
             $this->generateRequestFiles($modelName, $fields);
+            $this->generateResources($modelName, $fields);
         }
 
         // Add API Resource Route
@@ -359,5 +360,57 @@ class SmartScaffoldCommand extends Command
         }
         
         return implode(', ', $names);
+    }
+
+    protected function generateResources($modelName, $fields)
+    {
+        $this->generateResourceFile($modelName, $fields);
+        $this->generateResourceCollection($modelName);
+    }
+
+    protected function generateResourceFile($modelName, $fields)
+    {
+        $resourcePath = app_path("Http/Resources/{$modelName}Resource.php");
+        
+        $fieldDefinitions = explode(',', $fields);
+        $resourceFields = [];
+        
+        // Always include ID first
+        $resourceFields[] = "'id' => \$this->id,";
+        
+        foreach ($fieldDefinitions as $field) {
+            $parts = explode(':', $field);
+            $name = trim($parts[0]);
+            
+            // Skip these fields (we already added id)
+            if (!in_array($name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
+                $resourceFields[] = "'{$name}' => \$this->{$name},";
+            }
+        }
+
+        $stub = File::get(__DIR__.'/../../resources/stubs/resource.stub');
+        $content = str_replace(
+            ['{{ model }}', '{{ fields }}'],
+            [$modelName, implode("\n            ", $resourceFields)],
+            $stub
+        );
+
+        File::ensureDirectoryExists(dirname($resourcePath));
+        File::put($resourcePath, $content);
+    }
+
+    protected function generateResourceCollection($modelName)
+    {
+        $collectionPath = app_path("Http/Resources/{$modelName}Collection.php");
+        $stub = File::get(__DIR__.'/../../resources/stubs/resource-collection.stub');
+        
+        $content = str_replace(
+            '{{ model }}',
+            $modelName,
+            $stub
+        );
+
+        File::ensureDirectoryExists(dirname($collectionPath));
+        File::put($collectionPath, $content);
     }
 }

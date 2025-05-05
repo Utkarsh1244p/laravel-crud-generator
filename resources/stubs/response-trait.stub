@@ -56,9 +56,9 @@ trait Response
             ], $status);
         } else {
             return response()->json([
+                "data" => $data,
                 "message" => $message,
                 "status" => $status,
-                "data" => $data
             ], $status);
         }
     }
