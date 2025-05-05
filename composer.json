@@ -1,6 +1,6 @@
 {
     "name": "utkarshgayguwal/laravel-smart-scaffold",
-    "description": "Generate Laravel CRUD Model & Controller with a single command - php artisan make:crud ModelName",
+    "description": "Generate complete Laravel CRUD operations with a single command, including models, controllers with actual code having error handling, migrations, requests, factories, resources, and routes - ready for immediate API testing in Postman",
     "type": "library",
     "keywords": ["laravel", "crud", "generator", "model", "controller", "scaffolding"],
     "license": "MIT",
