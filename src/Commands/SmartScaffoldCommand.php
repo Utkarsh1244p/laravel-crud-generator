@@ -31,6 +31,7 @@ class SmartScaffoldCommand extends Command
             $this->generateFactory($modelName, $fields);
             $this->generateRequestFiles($modelName, $fields);
             $this->generateResources($modelName, $fields);
+            $this->generateFilters($modelName, $fields);
         }
 
         // Add API Resource Route
@@ -47,8 +48,12 @@ class SmartScaffoldCommand extends Command
         $modelPath = app_path("Models/{$modelName}.php");
         $stub = File::get(__DIR__.'/../../resources/stubs/model.stub');
         $content = str_replace(
-            ['{{ class }}', '{{ table }}'],
-            [$modelName, Str::snake(Str::plural($modelName))],
+            ['{{ class }}', '{{ table }}', '{{ model }}'],  // Add {{ model }} here
+            [
+                $modelName, 
+                Str::snake(Str::plural($modelName)),
+                $modelName  // Add replacement value
+            ],
             $stub
         );
         File::ensureDirectoryExists(dirname($modelPath));
@@ -412,5 +417,97 @@ class SmartScaffoldCommand extends Command
 
         File::ensureDirectoryExists(dirname($collectionPath));
         File::put($collectionPath, $content);
+    }
+
+    //Filtering Functionality Work
+    protected function generateFilters($modelName, $fields)
+    {
+        // Create base QueryFilter if doesn't exist
+        $this->generateBaseFilter();
+        
+        // Create model-specific filter
+        $this->generateModelFilter($modelName, $fields);
+    }
+
+    protected function generateBaseFilter()
+    {
+        $filterPath = app_path('Filters/QueryFilter.php');
+        
+        if (!File::exists($filterPath)) {
+            File::ensureDirectoryExists(dirname($filterPath));
+            File::put(
+                $filterPath,
+                File::get(__DIR__.'/../../resources/stubs/query-filter.stub')
+            );
+        }
+    }
+
+    protected function generateModelFilter($modelName, $fields)
+    {
+        $filterPath = app_path("Filters/{$modelName}Filter.php");
+        $fieldDefinitions = explode(',', $fields);
+        
+        $methods = [];
+        foreach ($fieldDefinitions as $field) {
+            $parts = explode(':', $field);
+            $name = trim($parts[0]);
+            
+            if (!in_array($name, ['id', 'created_at', 'updated_at', 'deleted_at'])) {
+                $methods[] = $this->generateFilterMethod($name, $parts[1] ?? 'string');
+            }
+        }
+
+        $stub = File::get(__DIR__.'/../../resources/stubs/model-filter.stub');
+        $content = str_replace(
+            ['{{ model }}', '{{ methods }}'],
+            [$modelName, implode("\n\n    ", $methods)],
+            $stub
+        );
+
+        File::ensureDirectoryExists(dirname($filterPath));
+        File::put($filterPath, $content);
+    }
+
+    protected function generateFilterMethod($fieldName, $fieldType)
+    {
+        $methodName = Str::camel($fieldName);
+        
+        $method = "public function {$methodName}(\$value)\n";
+        $method .= "{\n";
+        
+        switch ($fieldType) {
+            case 'string':
+            case 'text':
+                $method .= "    return \$this->builder->where('{$fieldName}', 'LIKE', \"%{\$value}%\");\n";
+                break;
+            case 'integer':
+            case 'bigInteger':
+            case 'float':
+            case 'decimal':
+                $method .= "    if (str_contains(\$value, ',')) {\n";
+                $method .= "        \$values = explode(',', \$value);\n";
+                $method .= "        return \$this->builder->whereBetween('{$fieldName}', \$values);\n";
+                $method .= "    }\n";
+                $method .= "    return \$this->builder->where('{$fieldName}', \$value);\n";
+                break;
+            case 'date':
+            case 'datetime':
+                $method .= "    if (str_contains(\$value, ',')) {\n";
+                $method .= "        \$dates = explode(',', \$value);\n";
+                $method .= "        return \$this->builder->whereBetween('{$fieldName}', \$dates);\n";
+                $method .= "    }\n";
+                $method .= "    return \$this->builder->whereDate('{$fieldName}', \$value);\n";
+                break;
+            case 'boolean':
+                $method .= "    \$boolValue = filter_var(\$value, FILTER_VALIDATE_BOOLEAN);\n";
+                $method .= "    return \$this->builder->where('{$fieldName}', \$boolValue);\n";
+                break;
+            default:
+                $method .= "    return \$this->builder->where('{$fieldName}', \$value);\n";
+        }
+        
+        $method .= "}";
+        
+        return $method;
     }
 }
