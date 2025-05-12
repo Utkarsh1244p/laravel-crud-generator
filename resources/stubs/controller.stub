@@ -19,7 +19,7 @@ class {{ model }}Controller extends Controller
         try {
             $limit = $request->input('limit', 10);
             ${{ modelVariable }} = {{ model }}::orderBy('updated_at', 'desc')->paginate($limit);
-            return $this->successResponse(data: new {{ model }}Collection(${{ modelVariable }}));
+            return $this->successResponse(data: {{ model }}Resource::collection(${{ modelVariable }}));
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
@@ -60,7 +60,7 @@ class {{ model }}Controller extends Controller
                 return $this->notFoundResponse();
             }
 
-            return $this->successResponse(data: new {{ model }}Resource(${{ modelVariable }}));
+            return $this->successResponse(data: {{ model }}Resource::make(${{ modelVariable }}));
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
         }
