@@ -5,10 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Filters\{{ model }}Filter;
+use Illuminate\Database\Eloquent\Builder;
 
 class {{ class }} extends Model
 {
     use HasFactory, SoftDeletes;
 
     protected $guarded = ['id'];
+
+    public function scopeFilter(Builder $builder, {{ model }}Filter $filter)
+    {
+        return $filter->apply($builder);
+    }
 }

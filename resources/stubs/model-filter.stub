@@ -1,0 +1,8 @@
+<?php
+
+namespace App\Filters;
+
+class {{ model }}Filter extends QueryFilter
+{
+    {{ methods }}
+}
