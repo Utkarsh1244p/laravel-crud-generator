@@ -9,16 +9,19 @@ use App\Http\Requests\Store{{ model }}Request;
 use App\Http\Requests\Update{{ model }}Request;
 use App\Http\Resources\{{ model }}Resource;
 use App\Http\Resources\{{ model }}Collection;
+use App\Filters\{{ model }}Filter;
 
 class {{ model }}Controller extends Controller
 {
     use Response;
 
-    public function index(Request $request)
+    public function index(Request $request, {{ model }}Filter $filter)
     {
         try {
             $limit = $request->input('limit', 10);
-            ${{ modelVariable }} = {{ model }}::orderBy('updated_at', 'desc')->paginate($limit);
+            ${{ modelVariable }} = {{ model }}::filter($filter)
+                ->orderBy('updated_at', 'desc')
+                ->paginate($limit);
             return $this->successResponse(data: {{ model }}Resource::collection(${{ modelVariable }}));
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
