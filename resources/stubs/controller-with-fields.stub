@@ -31,23 +31,13 @@ class {{ model }}Controller extends Controller
     public function store(Store{{ model }}Request $request)
     {
         try {
-            if(isset($fields) && count($fields) > 0)
-            {
-                $data = [];
-                foreach($fields as $field) {
-                    $data[$field['name']] = $request->input($field['name']);
-                }
-                ${{ modelVariable }} = {{ model }}::create($data);
-            }
-            else
-            {
-                ${{ modelVariable }} = {{ model }}::create($request->validated());
-            }
+            ${{ modelVariable }} = {{ model }}::create([
+                {{ fields }}
+            ]);
 
             return $this->successResponse(
-                ${{ modelVariable }}, 
-                '{{ model }} created successfully', 
-                self::CREATED
+                ${{ modelVariable }},
+                '{{ model }} created successfully'
             );
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage());
@@ -78,18 +68,9 @@ class {{ model }}Controller extends Controller
                 return $this->notFoundResponse();
             }
 
-            if(isset($fields) && count($fields) > 0)
-            {
-                $data = [];
-                foreach($fields as $field) {
-                    $data[$field['name']] = $request->input($field['name']);
-                }
-                ${{ modelVariable }}->update($data);
-            }
-            else
-            {
-                ${{ modelVariable }}->update($request->validated());
-            }
+            ${{ modelVariable }}->update([
+                {{ fields }}
+            ]);
 
             return $this->successResponse(
                 ${{ modelVariable }},
