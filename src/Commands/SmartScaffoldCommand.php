@@ -229,6 +229,7 @@ class SmartScaffoldCommand extends Command
         };
     }
 
+    //Code for Request Files
     protected function generateRequestFiles($modelName, $fields)
     {
         $fieldDefinitions = explode(',', $fields);
@@ -327,6 +328,8 @@ class SmartScaffoldCommand extends Command
         File::put($traitPath, $stub);
     }
 
+
+    //Code for Controller
     protected function generateController($modelName, $fields = null)
     {
         $controllerPath = app_path("Http/Controllers/{$modelName}Controller.php");
@@ -368,6 +371,7 @@ class SmartScaffoldCommand extends Command
         
         return implode(",\n                ", $mappings);
     }
+
 
     //Code for Resources
     protected function generateResources($modelName, $fields)
@@ -422,7 +426,8 @@ class SmartScaffoldCommand extends Command
         File::put($collectionPath, $content);
     }
 
-    //Filtering Functionality Work
+
+    //Code for Filters
     protected function generateFilters($modelName, $fields)
     {
         // Create base QueryFilter if doesn't exist
