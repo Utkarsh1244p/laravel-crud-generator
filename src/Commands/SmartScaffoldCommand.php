@@ -228,6 +228,7 @@ class SmartScaffoldCommand extends Command
             default => "'{$name}' => \$this->faker->word," // string and others
         };
     }
+
     protected function generateRequestFiles($modelName, $fields)
     {
         $fieldDefinitions = explode(',', $fields);
@@ -236,20 +237,18 @@ class SmartScaffoldCommand extends Command
         $this->generateRequestFile(
             $modelName, 
             'Store', 
-            $fieldDefinitions,
-            ['required', 'string', 'max:255'] // Default rules for store
+            $fieldDefinitions
         );
         
-        // Generate Update Request
+        // Generate Update Request (now same as Store)
         $this->generateRequestFile(
             $modelName, 
             'Update', 
-            $fieldDefinitions,
-            ['sometimes', 'string', 'max:255'] // Default rules for update
+            $fieldDefinitions
         );
     }
 
-    protected function generateRequestFile($modelName, $type, $fields, $defaultRules)
+    protected function generateRequestFile($modelName, $type, $fields)
     {
         $requestPath = app_path("Http/Requests/{$type}{$modelName}Request.php");
         $rules = [];
@@ -259,6 +258,7 @@ class SmartScaffoldCommand extends Command
             $parts = explode(':', $field);
             $name = trim($parts[0]);
             $fieldType = trim($parts[1] ?? 'string');
+            
             if ($fieldType === 'foreign') {
                 $foreignTable = trim($parts[2] ?? 'users');
                 $foreignColumn = trim($parts[3] ?? 'id');
@@ -269,18 +269,21 @@ class SmartScaffoldCommand extends Command
                 continue;
             }
 
-            // Get rules based on field type
-            $fieldRules = $this->getValidationRules($fieldType, $type === 'Store', $fieldType === 'foreign' ? [$foreignTable, $foreignColumn] : []);
+            // Get rules - no more isRequired parameter
+            $fieldRules = $this->getValidationRules(
+                $fieldType, 
+                $fieldType === 'foreign' ? [$foreignTable, $foreignColumn] : []
+            );
+            
             $rules[] = "'{$name}' => ['".implode("', '", $fieldRules)."'],";
             
-            // Generate messages
             foreach ($fieldRules as $rule) {
                 $messages[] = "'{$name}.{$rule}' => 'The {$name} field must be valid.',";
             }
         }
 
         $stubName = strtolower($type) . '-request.stub';
-        $stub = File::get(__DIR__ . "/../../resources/stubs/{$stubName}");
+        $stub = File::get(__DIR__."/../../resources/stubs/{$stubName}");
         $content = str_replace(
             ['{{ model }}', '{{ rules }}', '{{ messages }}'],
             [$modelName, implode("\n            ", $rules), implode("\n            ", $messages)],
@@ -291,14 +294,14 @@ class SmartScaffoldCommand extends Command
         File::put($requestPath, $content);
     }
 
-    protected function getValidationRules($fieldType, $isRequired = true, $foreign = [])
+    protected function getValidationRules($fieldType, $foreign = [])
     {
-        $rules = $isRequired ? ['required'] : ['sometimes'];
+        $rules = ['required']; // Always required now
         
         if ($fieldType === 'foreign' && $foreign) {
             $foreignTable = $foreign[0];
             $foreignColumn = $foreign[1];
-            return array_merge($rules, ['exists:'. $foreignTable .','. $foreignColumn]);
+            return array_merge($rules, ["exists:{$foreignTable},{$foreignColumn}"]);
         }
         
         return match($fieldType) {
@@ -309,7 +312,7 @@ class SmartScaffoldCommand extends Command
             'email' => array_merge($rules, ['email', 'max:255']),
             'text', 'longText' => array_merge($rules, ['string']),
             'json' => array_merge($rules, ['json']),
-            default => array_merge($rules, ['string', 'max:255']) 
+            default => array_merge($rules, ['string', 'max:255'])
         };
     }
 
