@@ -327,23 +327,21 @@ class SmartScaffoldCommand extends Command
     protected function generateController($modelName, $fields = null)
     {
         $controllerPath = app_path("Http/Controllers/{$modelName}Controller.php");
-        $stub = File::get(__DIR__.'/../../resources/stubs/controller.stub');
         
-        // Initialize replacements
+        // Choose the appropriate stub based on fields presence
+        $stubName = $fields ? 'controller-with-fields.stub' : 'controller-no-fields.stub';
+        $stub = File::get(__DIR__."/../../resources/stubs/{$stubName}");
+        
         $replacements = [
             '{{ model }}' => $modelName,
             '{{ modelVariable }}' => Str::camel($modelName),
-            '{{ fields }}' => '' // Default empty value
         ];
 
-        // Add fields if provided
+        // Add fields replacement if they exist
         if ($fields) {
-            $replacements['{{ fields }}'] = $this->getFieldNames($fields);
+            $replacements['{{ fields }}'] = $this->generateFieldMappings($fields);
         }
 
-        // Ensure all replacements are strings
-        $replacements = array_map('strval', $replacements);
-        
         $content = str_replace(
             array_keys($replacements),
             array_values($replacements),
@@ -354,19 +352,21 @@ class SmartScaffoldCommand extends Command
         File::put($controllerPath, $content);
     }
 
-    protected function getFieldNames($fields)
+    protected function generateFieldMappings($fields)
     {
         $fieldDefinitions = explode(',', $fields);
-        $names = [];
+        $mappings = [];
         
         foreach ($fieldDefinitions as $field) {
             $parts = explode(':', $field);
-            $names[] = "'".trim($parts[0])."'";
+            $name = trim($parts[0]);
+            $mappings[] = "'{$name}' => \$request->input('{$name}')";
         }
         
-        return implode(', ', $names);
+        return implode(",\n                ", $mappings);
     }
 
+    //Code for Resources
     protected function generateResources($modelName, $fields)
     {
         $this->generateResourceFile($modelName, $fields);
