@@ -1,0 +1,93 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\{{ model }};
+use App\Traits\Response;
+use Illuminate\Http\Request;
+use App\Http\Resources\{{ model }}Resource;
+use App\Http\Resources\{{ model }}Collection;
+use App\Filters\{{ model }}Filter;
+
+class {{ model }}Controller extends Controller
+{
+    use Response;
+
+    public function index(Request $request, {{ model }}Filter $filter)
+    {
+        try {
+            $limit = $request->input('limit', 10);
+            ${{ modelVariable }} = {{ model }}::filter($filter)
+                ->orderBy('updated_at', 'desc')
+                ->paginate($limit);
+            return $this->successResponse(data: {{ model }}Resource::collection(${{ modelVariable }}));
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    public function store(Request $request)
+    {
+        try {
+            ${{ modelVariable }} = {{ model }}::create($request->all());
+
+            return $this->successResponse(
+                ${{ modelVariable }},
+                '{{ model }} created successfully'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+            ${{ modelVariable }} = {{ model }}::find($id);
+            
+            if (!${{ modelVariable }}) {
+                return $this->notFoundResponse();
+            }
+
+            return $this->successResponse(data: {{ model }}Resource::make(${{ modelVariable }}));
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+            ${{ modelVariable }} = {{ model }}::find($id);
+            
+            if (!${{ modelVariable }}) {
+                return $this->notFoundResponse();
+            }
+
+            ${{ modelVariable }}->update($request->all());
+
+            return $this->successResponse(
+                ${{ modelVariable }},
+                '{{ model }} updated successfully'
+            );
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+
+    public function destroy($id)
+    {
+        try {
+            ${{ modelVariable }} = {{ model }}::find($id);
+            
+            if (!${{ modelVariable }}) {
+                return $this->notFoundResponse();
+            }
+
+            ${{ modelVariable }}->delete();
+            return $this->successResponse(message:'{{ model }} deleted successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage());
+        }
+    }
+}

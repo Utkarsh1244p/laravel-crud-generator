@@ -228,6 +228,8 @@ class SmartScaffoldCommand extends Command
             default => "'{$name}' => \$this->faker->word," // string and others
         };
     }
+
+    //Code for Request Files
     protected function generateRequestFiles($modelName, $fields)
     {
         $fieldDefinitions = explode(',', $fields);
@@ -236,20 +238,18 @@ class SmartScaffoldCommand extends Command
         $this->generateRequestFile(
             $modelName, 
             'Store', 
-            $fieldDefinitions,
-            ['required', 'string', 'max:255'] // Default rules for store
+            $fieldDefinitions
         );
         
-        // Generate Update Request
+        // Generate Update Request (now same as Store)
         $this->generateRequestFile(
             $modelName, 
             'Update', 
-            $fieldDefinitions,
-            ['sometimes', 'string', 'max:255'] // Default rules for update
+            $fieldDefinitions
         );
     }
 
-    protected function generateRequestFile($modelName, $type, $fields, $defaultRules)
+    protected function generateRequestFile($modelName, $type, $fields)
     {
         $requestPath = app_path("Http/Requests/{$type}{$modelName}Request.php");
         $rules = [];
@@ -259,6 +259,7 @@ class SmartScaffoldCommand extends Command
             $parts = explode(':', $field);
             $name = trim($parts[0]);
             $fieldType = trim($parts[1] ?? 'string');
+            
             if ($fieldType === 'foreign') {
                 $foreignTable = trim($parts[2] ?? 'users');
                 $foreignColumn = trim($parts[3] ?? 'id');
@@ -269,18 +270,21 @@ class SmartScaffoldCommand extends Command
                 continue;
             }
 
-            // Get rules based on field type
-            $fieldRules = $this->getValidationRules($fieldType, $type === 'Store', $fieldType === 'foreign' ? [$foreignTable, $foreignColumn] : []);
+            // Get rules - no more isRequired parameter
+            $fieldRules = $this->getValidationRules(
+                $fieldType, 
+                $fieldType === 'foreign' ? [$foreignTable, $foreignColumn] : []
+            );
+            
             $rules[] = "'{$name}' => ['".implode("', '", $fieldRules)."'],";
             
-            // Generate messages
             foreach ($fieldRules as $rule) {
                 $messages[] = "'{$name}.{$rule}' => 'The {$name} field must be valid.',";
             }
         }
 
         $stubName = strtolower($type) . '-request.stub';
-        $stub = File::get(__DIR__ . "/../../resources/stubs/{$stubName}");
+        $stub = File::get(__DIR__."/../../resources/stubs/{$stubName}");
         $content = str_replace(
             ['{{ model }}', '{{ rules }}', '{{ messages }}'],
             [$modelName, implode("\n            ", $rules), implode("\n            ", $messages)],
@@ -291,14 +295,14 @@ class SmartScaffoldCommand extends Command
         File::put($requestPath, $content);
     }
 
-    protected function getValidationRules($fieldType, $isRequired = true, $foreign = [])
+    protected function getValidationRules($fieldType, $foreign = [])
     {
-        $rules = $isRequired ? ['required'] : ['sometimes'];
+        $rules = ['required']; // Always required now
         
         if ($fieldType === 'foreign' && $foreign) {
             $foreignTable = $foreign[0];
             $foreignColumn = $foreign[1];
-            return array_merge($rules, ['exists:'. $foreignTable .','. $foreignColumn]);
+            return array_merge($rules, ["exists:{$foreignTable},{$foreignColumn}"]);
         }
         
         return match($fieldType) {
@@ -309,7 +313,7 @@ class SmartScaffoldCommand extends Command
             'email' => array_merge($rules, ['email', 'max:255']),
             'text', 'longText' => array_merge($rules, ['string']),
             'json' => array_merge($rules, ['json']),
-            default => array_merge($rules, ['string', 'max:255']) 
+            default => array_merge($rules, ['string', 'max:255'])
         };
     }
 
@@ -324,26 +328,26 @@ class SmartScaffoldCommand extends Command
         File::put($traitPath, $stub);
     }
 
+
+    //Code for Controller
     protected function generateController($modelName, $fields = null)
     {
         $controllerPath = app_path("Http/Controllers/{$modelName}Controller.php");
-        $stub = File::get(__DIR__.'/../../resources/stubs/controller.stub');
         
-        // Initialize replacements
+        // Choose the appropriate stub based on fields presence
+        $stubName = $fields ? 'controller-with-fields.stub' : 'controller-no-fields.stub';
+        $stub = File::get(__DIR__."/../../resources/stubs/{$stubName}");
+        
         $replacements = [
             '{{ model }}' => $modelName,
             '{{ modelVariable }}' => Str::camel($modelName),
-            '{{ fields }}' => '' // Default empty value
         ];
 
-        // Add fields if provided
+        // Add fields replacement if they exist
         if ($fields) {
-            $replacements['{{ fields }}'] = $this->getFieldNames($fields);
+            $replacements['{{ fields }}'] = $this->generateFieldMappings($fields);
         }
 
-        // Ensure all replacements are strings
-        $replacements = array_map('strval', $replacements);
-        
         $content = str_replace(
             array_keys($replacements),
             array_values($replacements),
@@ -354,19 +358,22 @@ class SmartScaffoldCommand extends Command
         File::put($controllerPath, $content);
     }
 
-    protected function getFieldNames($fields)
+    protected function generateFieldMappings($fields)
     {
         $fieldDefinitions = explode(',', $fields);
-        $names = [];
+        $mappings = [];
         
         foreach ($fieldDefinitions as $field) {
             $parts = explode(':', $field);
-            $names[] = "'".trim($parts[0])."'";
+            $name = trim($parts[0]);
+            $mappings[] = "'{$name}' => \$request->input('{$name}')";
         }
         
-        return implode(', ', $names);
+        return implode(",\n                ", $mappings);
     }
 
+
+    //Code for Resources
     protected function generateResources($modelName, $fields)
     {
         $this->generateResourceFile($modelName, $fields);
@@ -419,7 +426,8 @@ class SmartScaffoldCommand extends Command
         File::put($collectionPath, $content);
     }
 
-    //Filtering Functionality Work
+
+    //Code for Filters
     protected function generateFilters($modelName, $fields)
     {
         // Create base QueryFilter if doesn't exist
