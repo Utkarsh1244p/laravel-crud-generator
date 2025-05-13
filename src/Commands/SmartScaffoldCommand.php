@@ -16,6 +16,9 @@ class SmartScaffoldCommand extends Command
         $modelName = $this->argument('model');
         $fields = $this->option('fields');
 
+        $this->info("Generating CRUD files for {$modelName}...");
+        $this->newLine(); 
+
         // Generate Response Trait
         $this->generateResponseTrait();
 
@@ -36,11 +39,6 @@ class SmartScaffoldCommand extends Command
 
         // Add API Resource Route
         $this->addApiResourceRoute($modelName);
-
-        $this->info("CRUD files for {$modelName} created successfully!");
-        if ($fields) {
-            $this->info("Migration file created with fields: {$fields}");
-        }
     }
 
     protected function generateModel($modelName)
@@ -58,6 +56,7 @@ class SmartScaffoldCommand extends Command
         );
         File::ensureDirectoryExists(dirname($modelPath));
         File::put($modelPath, $content);
+        $this->printCreatedFile(app_path("Models/{$modelName}.php"));
     }
 
     protected function generateMigration($modelName, $fields)
@@ -78,6 +77,7 @@ class SmartScaffoldCommand extends Command
         );
 
         File::put($migrationPath, $content);
+        $this->printCreatedFile(database_path("migrations/{$timestamp}_{$migrationName}.php"));
     }
 
     protected function buildSchemaContent($fields)
@@ -214,6 +214,7 @@ class SmartScaffoldCommand extends Command
         
         File::ensureDirectoryExists(dirname($factoryPath));
         File::put($factoryPath, $content);
+        $this->printCreatedFile(database_path("factories/{$modelName}Factory.php"));
     }
 
     protected function getFactoryFieldDefinition($name, $type)
@@ -240,6 +241,7 @@ class SmartScaffoldCommand extends Command
             'Store', 
             $fieldDefinitions
         );
+        $this->printCreatedFile(app_path("Http/Requests/Store{$modelName}Request.php"));
         
         // Generate Update Request (now same as Store)
         $this->generateRequestFile(
@@ -247,6 +249,7 @@ class SmartScaffoldCommand extends Command
             'Update', 
             $fieldDefinitions
         );
+        $this->printCreatedFile(app_path("Http/Requests/Update{$modelName}Request.php"));
     }
 
     protected function generateRequestFile($modelName, $type, $fields)
@@ -326,6 +329,7 @@ class SmartScaffoldCommand extends Command
         $stub = File::get(__DIR__ . '/../../resources/stubs/response-trait.stub');
 
         File::put($traitPath, $stub);
+        $this->printCreatedFile(app_path("Traits/Response.php"));
     }
 
 
@@ -356,6 +360,7 @@ class SmartScaffoldCommand extends Command
 
         File::ensureDirectoryExists(dirname($controllerPath));
         File::put($controllerPath, $content);
+        $this->printCreatedFile(app_path("Http/Controllers/{$modelName}Controller.php"));
     }
 
     protected function generateFieldMappings($fields)
@@ -409,6 +414,7 @@ class SmartScaffoldCommand extends Command
 
         File::ensureDirectoryExists(dirname($resourcePath));
         File::put($resourcePath, $content);
+        $this->printCreatedFile(app_path("Http/Resources/{$modelName}Resource.php"));
     }
 
     protected function generateResourceCollection($modelName)
@@ -424,6 +430,7 @@ class SmartScaffoldCommand extends Command
 
         File::ensureDirectoryExists(dirname($collectionPath));
         File::put($collectionPath, $content);
+        $this->printCreatedFile(app_path("Http/Resources/{$modelName}Collection.php"));
     }
 
 
@@ -447,6 +454,7 @@ class SmartScaffoldCommand extends Command
                 $filterPath,
                 File::get(__DIR__.'/../../resources/stubs/query-filter.stub')
             );
+            $this->printCreatedFile(app_path("Filters/QueryFilter.php"));
         }
     }
 
@@ -474,6 +482,7 @@ class SmartScaffoldCommand extends Command
 
         File::ensureDirectoryExists(dirname($filterPath));
         File::put($filterPath, $content);
+        $this->printCreatedFile(app_path("Filters/{$modelName}Filter.php"));
     }
 
     protected function generateFilterMethod($fieldName, $fieldType)
@@ -517,5 +526,11 @@ class SmartScaffoldCommand extends Command
         $method .= "}";
         
         return $method;
+    }
+
+    protected function printCreatedFile($path)
+    {
+        $relativePath = str_replace(base_path().'/', '', $path);
+        $this->line("<fg=green>Created</> {$relativePath}");
     }
 }
