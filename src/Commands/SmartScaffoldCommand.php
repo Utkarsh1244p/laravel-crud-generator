@@ -33,10 +33,7 @@ class SmartScaffoldCommand extends Command
             $this->generateMigration($modelName, $fields);
             $this->generateFactory($modelName, $fields);
             $this->generateRequestFiles($modelName, $fields);
-            $this->printCreatedFile(app_path("Http/Requests/Store{$modelName}Request.php"));
-            $this->printCreatedFile(app_path("Http/Requests/Update{$modelName}Request.php"));
             $this->generateResources($modelName, $fields);
-            $this->printCreatedFile(app_path("Http/Resources/{$modelName}Resource.php"));
             $this->generateFilters($modelName, $fields);
         }
 
@@ -244,6 +241,7 @@ class SmartScaffoldCommand extends Command
             'Store', 
             $fieldDefinitions
         );
+        $this->printCreatedFile(app_path("Http/Requests/Store{$modelName}Request.php"));
         
         // Generate Update Request (now same as Store)
         $this->generateRequestFile(
@@ -251,6 +249,7 @@ class SmartScaffoldCommand extends Command
             'Update', 
             $fieldDefinitions
         );
+        $this->printCreatedFile(app_path("Http/Requests/Update{$modelName}Request.php"));
     }
 
     protected function generateRequestFile($modelName, $type, $fields)
@@ -415,6 +414,7 @@ class SmartScaffoldCommand extends Command
 
         File::ensureDirectoryExists(dirname($resourcePath));
         File::put($resourcePath, $content);
+        $this->printCreatedFile(app_path("Http/Resources/{$modelName}Resource.php"));
     }
 
     protected function generateResourceCollection($modelName)
@@ -430,6 +430,7 @@ class SmartScaffoldCommand extends Command
 
         File::ensureDirectoryExists(dirname($collectionPath));
         File::put($collectionPath, $content);
+        $this->printCreatedFile(app_path("Http/Resources/{$modelName}Collection.php"));
     }
 
 
