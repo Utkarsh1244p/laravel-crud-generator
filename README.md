@@ -1,11 +1,12 @@
 # Laravel Smart Scaffold
 
+
 [![Latest Version](https://img.shields.io/github/v/release/utkarshgayguwal/laravel-smart-scaffold?style=flat-square)](https://packagist.org/packages/utkarshgayguwal/laravel-smart-scaffold)
 [![License](https://img.shields.io/github/license/utkarshgayguwal/laravel-smart-scaffold?style=flat-square)](LICENSE.md)
 [![Total Downloads](https://img.shields.io/packagist/dt/utkarshgayguwal/laravel-smart-scaffold?style=flat-square)](https://packagist.org/packages/utkarshgayguwal/laravel-smart-scaffold)
 [![PHP Version](https://img.shields.io/packagist/php-v/utkarshgayguwal/laravel-smart-scaffold?style=flat-square)](https://packagist.org/packages/utkarshgayguwal/laravel-smart-scaffold)
 
-🚀 Generate complete Laravel CRUD operations with a single command! Smart Scaffold automatically creates all necessary components, including models, controllers with error handling, migrations, requests, factories, resources, and routes - ready for immediate API testing in Postman.
+🚀 Generate complete Laravel CRUD operations with a single command! Smart Scaffold automatically creates all necessary components including models, controllers, migrations, requests, factories, resources, filters, and routes - ready for immediate API testing.
 
 ---
 
@@ -15,31 +16,31 @@
 - 🛡 **Production-Ready Code** - Built-in error handling and validation
 - 🎯 **Complete API Stack** - Everything you need for RESTful APIs
 - 🤖 **Smart Generation** - Automatic relationships and field detection
-- 🎯 **Postman-Ready** - API endpoints ready for immediate testing
+- 🔍 **Built-in Filtering** - Auto-generated filter classes for all models
+- 📦 **API Resources** - Clean JSON response formatting
 
 ---
 
 ## ✨ Key Features
 
 ### 📦 Complete CRUD Stack
-
-- **Models** with `HasFactory` and `SoftDeletes`
-- **Controllers** with comprehensive CRUD methods and error handling
+- **Models** with `HasFactory`, `SoftDeletes` and filtering support
+- **Controllers** with full CRUD methods and error handling
 - **Migrations** with smart field type detection
 - **Factories** with intelligent Faker data generation
-- **Requests** with separate Store/Update validation
-- **Resources** for standardized API responses
+- **Requests** with strict validation (all fields required)
+- **Resources** for standardized API responses (ID-first format)
+- **Filters** for advanced query filtering
 - **Routes** automatically added to `routes/api.php`
 
 ### 🔥 Advanced Features
-
 - **Smart Relationships** - Automatic foreign key detection
-- **Error Handling** - Built-in try-catch blocks
+- **Type-Aware Filtering** - Different logic per field type
 - **Standardized Responses** - Consistent JSON API format
-- **Flexible Field Types** - Support for all Laravel field types
-- **Customizable Validation** - Configurable validation rules
+- **Field Modifiers** - nullable, default, unique, index, cascade
 - **Postman Integration** - Ready-to-use API endpoints
 
+---
 ### 🛠️ Field Types & Modifiers
 
 | Type | Description | Example |
