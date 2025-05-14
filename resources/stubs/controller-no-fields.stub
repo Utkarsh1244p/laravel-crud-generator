@@ -16,13 +16,17 @@ class {{ model }}Controller extends Controller
     public function index(Request $request, {{ model }}Filter $filter)
     {
         try {
-            $limit = $request->input('limit', 10);
+            $limit   = $request->limit ?? 10;
+            $orderBy = $request->orderBy ?? 'id';
+            $sortBy  = $request->sortBy ?? 'desc';
+
             ${{ modelVariable }} = {{ model }}::filter($filter)
-                ->orderBy('updated_at', 'desc')
+                ->orderBy($orderBy, $sortBy)
                 ->paginate($limit);
-            return $this->successResponse(data: {{ model }}Resource::collection(${{ modelVariable }}));
+            return {{ model }}Resource::collection(${{ modelVariable }});
         } catch (\Exception $e) {
-            return $this->errorResponse($e->getMessage());
+            \Log::error([$e->getMessage(), $e->getLine(), $e->getFile()]);
+            return $this->errorResponse('Server Error');
         }
     }
 
@@ -36,7 +40,8 @@ class {{ model }}Controller extends Controller
                 '{{ model }} created successfully'
             );
         } catch (\Exception $e) {
-            return $this->errorResponse($e->getMessage());
+            \Log::error([$e->getMessage(), $e->getLine(), $e->getFile()]);
+            return $this->errorResponse('Server Error');
         }
     }
 
@@ -51,7 +56,8 @@ class {{ model }}Controller extends Controller
 
             return $this->successResponse(data: {{ model }}Resource::make(${{ modelVariable }}));
         } catch (\Exception $e) {
-            return $this->errorResponse($e->getMessage());
+            \Log::error([$e->getMessage(), $e->getLine(), $e->getFile()]);
+            return $this->errorResponse('Server Error');
         }
     }
 
@@ -71,7 +77,8 @@ class {{ model }}Controller extends Controller
                 '{{ model }} updated successfully'
             );
         } catch (\Exception $e) {
-            return $this->errorResponse($e->getMessage());
+            \Log::error([$e->getMessage(), $e->getLine(), $e->getFile()]);
+            return $this->errorResponse('Server Error');
         }
     }
 
@@ -87,7 +94,8 @@ class {{ model }}Controller extends Controller
             ${{ modelVariable }}->delete();
             return $this->successResponse(message:'{{ model }} deleted successfully');
         } catch (\Exception $e) {
-            return $this->errorResponse($e->getMessage());
+            \Log::error([$e->getMessage(), $e->getLine(), $e->getFile()]);
+            return $this->errorResponse('Server Error');
         }
     }
 }
